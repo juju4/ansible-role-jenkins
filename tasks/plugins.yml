@@ -28,16 +28,24 @@
     path: "{{ jenkins_admin_password_file }}"
   register: adminpasswordfile
 
-- name: Install Jenkins plugins using password.
-  command: >
-    java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix | default('') }}/
-    install-plugin {{ item }}
-    --username {{ jenkins_admin_username }}
-    --password {{ jenkins_admin_password }}
-    creates="{{ jenkins_home }}/plugins/{{ item }}.jpi"
-  with_items: "{{ jenkins_plugins }}"
+- block:
+## https://github.com/geerlingguy/ansible-role-jenkins/issues/106
+## https://github.com/geerlingguy/ansible-role-jenkins/issues/80
+## https://issues.jenkins-ci.org/browse/JENKINS-40613?jql=text%20~%20%22Unexpected%20termination%20of%20the%20channel%22%20ORDER%20BY%20created%20DESC
+    - name: Install Jenkins plugins using password.
+      command: >
+        java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix | default('') }}/
+        install-plugin {{ item }}
+        --username {{ jenkins_admin_username }}
+        --password {{ jenkins_admin_password }}
+        creates="{{ jenkins_home }}/plugins/{{ item }}.jpi"
+      with_items: "{{ jenkins_plugins }}"
+      notify: restart jenkins
+      register: result
+      until: result|success
+      retries: 3
+      delay: 5
   when: jenkins_admin_password != ""
-  notify: restart jenkins
 
 - name: Install Jenkins plugins using password-file.
   command: >
