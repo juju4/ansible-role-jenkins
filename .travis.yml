@@ -21,12 +21,13 @@ env:
     site: test.yml
     prefix: ''
     http_port: 8080
-  - distro: ubuntu1204
-    init: /sbin/init
-    run_opts: ""
-    site: test.yml
-    prefix: ''
-    http_port: 8080
+## No package matching 'openjdk-7-jdk' is available
+#  - distro: ubuntu1204
+#    init: /sbin/init
+#    run_opts: ""
+#    site: test.yml
+#    prefix: ''
+#    http_port: 8080
 
   # tests/test-http-port.yml
   - distro: ubuntu1404
