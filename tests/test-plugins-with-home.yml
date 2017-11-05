@@ -3,10 +3,8 @@
 
   vars:
     jenkins_plugins:
-      - blueocean
-      - ghprb
       - greenballs
-      - workflow-aggregator
+    jenkins_home: /tmp/jenkins
     jenkins_plugin_timeout: 120
 
   pre_tasks:
