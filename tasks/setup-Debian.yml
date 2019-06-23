@@ -15,8 +15,9 @@
   apt_repository:
     repo: "{{ jenkins_repo_url }}"
     state: present
-    update_cache: yes
-  when: jenkins_repo_url != ''
+    update_cache: true
+  when: jenkins_repo_url != ""
+  tags: ['skip_ansible_lint']
 
 - name: Download specific Jenkins version.
   get_url:
