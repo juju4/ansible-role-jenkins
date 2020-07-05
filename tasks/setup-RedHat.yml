@@ -3,7 +3,7 @@
   package:
     name:
       - curl
-      - libselinux-python
+      - "{% if ansible_distribution_major_version|int <= 7 %}libselinux-python{% else %}python3-libselinux{% endif %}"
       - initscripts
     state: present
 
