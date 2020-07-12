@@ -41,9 +41,12 @@ Default admin password file which will be created the first time Jenkins is inst
 
 The location at which the `jenkins-cli.jar` jarfile will be kept. This is used for communicating with Jenkins via the CLI.
 
-    jenkins_plugins: []
+    jenkins_plugins:
+      - blueocean
+      - name: influxdb
+        version: "1.12.1"
 
-Jenkins plugins to be installed automatically during provisioning.
+Jenkins plugins to be installed automatically during provisioning. Defaults to empty list (`[]`). Items can use name or dictionary with `name` and `version` keys to pin specific version of a plugin.
 
     jenkins_plugins_install_dependencies: true
 
@@ -51,7 +54,7 @@ Whether Jenkins plugins to be installed should also install any plugin dependenc
 
     jenkins_plugins_state: present
 
-Use `latest` to ensure all plugins are running the most up-to-date version.
+Use `latest` to ensure all plugins are running the most up-to-date version. For any plugin that has a specific version set in `jenkins_plugins` list, state `present` will be used instead of `jenkins_plugins_state` value.
 
     jenkins_plugin_updates_expiration: 86400
 
@@ -65,7 +68,7 @@ The URL to use for Jenkins plugin updates and update-center information.
 
 The server connection timeout, in seconds, when installing Jenkins plugins.
 
-    jenkins_version: "1.644"
+    jenkins_version: "2.220"
     jenkins_pkg_url: "http://www.example.com"
 
 (Optional) Then Jenkins version can be pinned to any version available on `http://pkg.jenkins-ci.org/debian/` (Debian/Ubuntu) or `http://pkg.jenkins-ci.org/redhat/` (RHEL/CentOS). If the Jenkins version you need is not available in the default package URLs, you can override the URL with your own; set `jenkins_pkg_url` (_Note_: the role depends on the same naming convention that `http://pkg.jenkins-ci.org/` uses).
@@ -79,23 +82,21 @@ Used for setting a URL prefix for your Jenkins installation. The option is added
 
 Amount of time and number of times to wait when connecting to Jenkins after initial startup, to verify that Jenkins is running. Total time to wait = `delay` * `retries`, so by default this role will wait up to 300 seconds before timing out.
 
-    # For RedHat/CentOS (role default):
-    jenkins_repo_url: http://pkg.jenkins-ci.org/redhat/jenkins.repo
-    jenkins_repo_key_url: http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key
-    # For Debian (role default):
-    jenkins_repo_url: deb http://pkg.jenkins-ci.org/debian binary/
-    jenkins_repo_key_url: http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key
+    jenkins_prefer_lts: false
 
-This role will install the latest version of Jenkins by default (using the official repositories as listed above). You can override these variables (use the correct set for your platform) to install the current LTS version instead:
+By default, this role will install the latest version of Jenkins using the official repositories according to the platform. You can install the current LTS version instead by setting this to `false`.
 
-    # For RedHat/CentOS LTS:
-    jenkins_repo_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
-    jenkins_repo_key_url: http://pkg.jenkins-ci.org/redhat-stable/jenkins-ci.org.key
-    # For Debian/Ubuntu LTS:
-    jenkins_repo_url: deb http://pkg.jenkins-ci.org/debian-stable binary/
-    jenkins_repo_key_url: http://pkg.jenkins-ci.org/debian-stable/jenkins-ci.org.key
+The default repositories (listed below) can be overridden as well.
 
-It is also possible stop the repo file being added by setting  `jenkins_repo_url: ''`. This is useful if, for example, you sign your own packages or run internal package management (e.g. Spacewalk).
+    # For RedHat/CentOS:
+    jenkins_repo_url: https://pkg.jenkins.io/redhat{{ '-stable' if (jenkins_prefer_lts | bool) else '' }}/jenkins.repo
+    jenkins_repo_key_url: https://pkg.jenkins.io/redhat{{ '-stable' if (jenkins_prefer_lts | bool) else '' }}/jenkins.io.key
+    
+    # For Debian/Ubuntu:
+    jenkins_repo_url: deb https://pkg.jenkins.io/debian{{ '-stable' if (jenkins_prefer_lts | bool) else '' }} binary/
+    jenkins_repo_key_url: https://pkg.jenkins.io/debian{{ '-stable' if (jenkins_prefer_lts | bool) else '' }}/jenkins.io.key
+
+It is also possible to prevent the repo file from being added by setting  `jenkins_repo_url: ''`. This is useful if, for example, you sign your own packages or run internal package management (e.g. Spacewalk).
 
     jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
 
@@ -119,18 +120,25 @@ If you are running Jenkins behind a proxy server, configure these options approp
 
 ## Dependencies
 
-  - geerlingguy.java
+None.
 
 ## Example Playbook
 
 ```yaml
 - hosts: jenkins
+  become: true
+  
   vars:
     jenkins_hostname: jenkins.example.com
+    java_packages:
+      - openjdk-8-jdk
+
   roles:
+    - role: geerlingguy.java
     - role: geerlingguy.jenkins
-      become: yes
 ```
+
+Note that `java_packages` may need different versions depending on your distro (e.g. `openjdk-11-jdk` for Debian 10, or `java-1.8.0-openjdk` for RHEL 7 or 8).
 
 ## License
 

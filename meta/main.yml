@@ -1,8 +1,8 @@
 ---
-dependencies:
-  - geerlingguy.java
+dependencies: []
 
 galaxy_info:
+  role_name: jenkins
   author: geerlingguy
   description: Jenkins CI
   company: "Midwestern Mac, LLC"
@@ -13,6 +13,7 @@ galaxy_info:
       versions:
         - 6
         - 7
+        - 8
     - name: Fedora
       versions:
         - all
